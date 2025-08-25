@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      tasks: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          status: string | null
+          title: string
+          user_id: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          user_id?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          user_id?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          last_completed: string | null
+          level: number | null
+          streak: number | null
+          user_id: string
+          xp: number | null
+        }
+        Insert: {
+          last_completed?: string | null
+          level?: number | null
+          streak?: number | null
+          user_id: string
+          xp?: number | null
+        }
+        Update: {
+          last_completed?: string | null
+          level?: number | null
+          streak?: number | null
+          user_id?: string
+          xp?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
