@@ -71,15 +71,87 @@ export function useTasks() {
 
   const completeTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { data, error } = await supabase
+      if (!user) throw new Error('User not authenticated');
+
+      // Update task status to completed
+      const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .update({ status: 'completed' })
+        .update({ 
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
         .eq('id', taskId)
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (taskError) throw taskError;
+
+      // Get or create user stats
+      let { data: stats, error: statsError } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (statsError) throw statsError;
+
+      // Create stats if doesn't exist
+      if (!stats) {
+        const { data: newStats, error: createError } = await supabase
+          .from('user_stats')
+          .insert({
+            user_id: user.id,
+            xp: 0,
+            level: 1,
+            streak: 0,
+            last_completed: null,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        stats = newStats;
+      }
+
+      // Calculate new XP and level
+      let newXp = (stats.xp || 0) + taskData.xp_reward;
+      let newLevel = stats.level || 1;
+      
+      while (newXp >= 100) {
+        newLevel += 1;
+        newXp -= 100;
+      }
+
+      // Calculate streak
+      const today = new Date().toDateString();
+      const lastCompleted = stats.last_completed ? new Date(stats.last_completed).toDateString() : null;
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+      
+      let newStreak = stats.streak || 0;
+      
+      if (!lastCompleted || lastCompleted === yesterday) {
+        // First task ever or completed task yesterday - increment streak
+        newStreak += 1;
+      } else if (lastCompleted !== today) {
+        // Missed a day - reset streak
+        newStreak = 1;
+      }
+      // If lastCompleted === today, keep current streak (already completed today)
+
+      // Update user stats
+      const { error: updateError } = await supabase
+        .from('user_stats')
+        .update({
+          xp: newXp,
+          level: newLevel,
+          streak: newStreak,
+          last_completed: today,
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      return taskData;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -90,7 +162,7 @@ export function useTasks() {
         className: "glow-success",
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
         description: "Failed to complete quest. Please try again.",

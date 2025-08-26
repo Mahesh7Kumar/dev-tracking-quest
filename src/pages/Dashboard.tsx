@@ -23,12 +23,14 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
+import { SettingsDialog } from '@/components/SettingsDialog';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { stats } = useUserStats();
   const { tasks, pendingTasks, completedTasks, todayTasks, completeTask } = useTasks();
   const [showCreateTask, setShowCreateTask] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 18 ? 'Good Afternoon' : 'Good Evening';
@@ -73,7 +75,7 @@ export default function Dashboard() {
                   className="pl-10 pr-4 py-2 bg-secondary/50 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
                 <Settings className="h-5 w-5" />
               </Button>
               <Avatar className="cursor-pointer" onClick={signOut}>
@@ -267,6 +269,7 @@ export default function Dashboard() {
       </div>
 
       <CreateTaskDialog open={showCreateTask} onOpenChange={setShowCreateTask} />
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
 }
