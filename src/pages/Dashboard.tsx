@@ -21,12 +21,12 @@ import {
   Briefcase,
   User
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { SettingsDialog } from '@/components/SettingsDialog';
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { stats } = useUserStats();
   const { tasks, pendingTasks, completedTasks, todayTasks, completeTask } = useTasks();
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -64,7 +64,7 @@ export default function Dashboard() {
                 </h1>
               </div>
               <div className="hidden md:block text-muted-foreground">
-                {greeting}, {user?.email?.split('@')[0]}!
+                {greeting}, {profile.display_name || user?.email?.split('@')[0]}!
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -80,7 +80,7 @@ export default function Dashboard() {
               </Button>
               <Avatar className="cursor-pointer" onClick={signOut}>
                 <AvatarFallback className="bg-primary/20 text-primary">
-                  {user?.email?.[0]?.toUpperCase()}
+                  {(profile.display_name || user?.email)?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>

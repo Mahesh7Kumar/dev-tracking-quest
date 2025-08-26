@@ -6,9 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Settings, User, Palette, LogOut } from 'lucide-react';
-import { useTheme } from 'next-themes';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -16,10 +14,9 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
-  const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || user?.email?.split('@')[0] || '');
+  const [displayName, setDisplayName] = useState(profile.display_name || user?.email?.split('@')[0] || '');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateProfile = async () => {
@@ -27,9 +24,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     
     setIsUpdating(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { display_name: displayName }
-      });
+      const { error } = await updateProfile({ display_name: displayName });
 
       if (error) throw error;
 
@@ -45,6 +40,25 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDarkModeToggle = async (checked: boolean) => {
+    try {
+      const { error } = await updateProfile({ darkMode: checked });
+      
+      if (error) throw error;
+
+      toast({
+        title: "Theme Updated",
+        description: `Switched to ${checked ? 'dark' : 'light'} mode.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update theme. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -124,8 +138,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
               <Switch
                 id="theme-toggle"
-                checked={theme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                checked={profile.darkMode ?? false}
+                onCheckedChange={handleDarkModeToggle}
               />
             </div>
           </div>
