@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from 'next-themes';
 import { Settings, User, Palette, LogOut, Camera, X } from 'lucide-react';
 
 interface SettingsDialogProps {
@@ -17,6 +18,7 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { user, profile, signOut, updateProfile, uploadAvatar } = useAuth();
   const { toast } = useToast();
+  const { setTheme } = useTheme();
   const [displayName, setDisplayName] = useState(profile.display_name || user?.email?.split('@')[0] || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -48,6 +50,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   const handleDarkModeToggle = async (checked: boolean) => {
     try {
+      // Update the theme immediately in the UI
+      setTheme(checked ? 'dark' : 'light');
+      
+      // Update the profile in the database
       const { error } = await updateProfile({ darkMode: checked });
       
       if (error) throw error;
@@ -57,6 +63,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         description: `Switched to ${checked ? 'dark' : 'light'} mode.`,
       });
     } catch (error) {
+      // Revert the theme if database update fails
+      setTheme(checked ? 'light' : 'dark');
       toast({
         title: "Error",
         description: "Failed to update theme. Please try again.",
