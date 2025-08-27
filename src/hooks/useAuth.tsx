@@ -3,7 +3,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {
+  id?: string;
   display_name?: string;
+  avatar_url?: string;
   darkMode?: boolean;
 }
 
@@ -17,6 +19,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github') => Promise<{ error: any }>;
   updateProfile: (updates: UserProfile) => Promise<{ error: any }>;
+  uploadAvatar: (file: File) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,21 +30,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile>({});
   const [loading, setLoading] = useState(true);
 
+  // Fetch profile from database
+  const fetchProfile = async (userData: User) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userData.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        // Get dark mode from user metadata since it's not in profiles table
+        const darkMode = userData.user_metadata?.darkMode ?? false;
+        
+        const newProfile = {
+          id: data.id,
+          display_name: data.display_name,
+          avatar_url: data.avatar_url,
+          darkMode,
+        };
+        setProfile(newProfile);
+        
+        // Apply dark mode to document
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
   // Sync profile data and apply dark mode
   const syncProfile = (userData: User | null) => {
-    if (userData?.user_metadata) {
-      const newProfile = {
-        display_name: userData.user_metadata.display_name,
-        darkMode: userData.user_metadata.darkMode ?? false,
-      };
-      setProfile(newProfile);
-      
-      // Apply dark mode to document
-      if (newProfile.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    if (userData) {
+      fetchProfile(userData);
+    } else {
+      setProfile({});
+      document.documentElement.classList.remove('dark');
     }
   };
 
@@ -106,20 +139,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return { error: new Error('User not authenticated') };
     
     try {
-      const newMetadata = { ...user.user_metadata, ...updates };
-      
-      const { error } = await supabase.auth.updateUser({
-        data: newMetadata
-      });
+      // Update profile in database
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: updates.display_name,
+          avatar_url: updates.avatar_url,
+        }, {
+          onConflict: 'user_id'
+        });
 
-      if (error) return { error };
+      if (dbError) return { error: dbError };
+
+      // Update metadata for dark mode
+      if (updates.darkMode !== undefined) {
+        const { error: authError } = await supabase.auth.updateUser({
+          data: { darkMode: updates.darkMode }
+        });
+        if (authError) return { error: authError };
+      }
 
       // Update local state immediately
-      const updatedUser = { ...user, user_metadata: newMetadata };
-      setUser(updatedUser);
-      syncProfile(updatedUser);
+      const newProfile = { ...profile, ...updates };
+      setProfile(newProfile);
+      
+      // Apply dark mode to document
+      if (updates.darkMode !== undefined) {
+        if (updates.darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
       
       return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    if (!user) return { error: new Error('User not authenticated') };
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete existing avatar if it exists
+      if (profile.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) return { error: uploadError };
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      return await updateProfile({ avatar_url: publicUrl });
     } catch (error) {
       return { error };
     }
@@ -135,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signInWithProvider,
     updateProfile,
+    uploadAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

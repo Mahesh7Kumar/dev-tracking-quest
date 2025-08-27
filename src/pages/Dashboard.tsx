@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Search, 
   Settings, 
@@ -78,7 +78,10 @@ export default function Dashboard() {
               <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
                 <Settings className="h-5 w-5" />
               </Button>
-              <Avatar className="cursor-pointer" onClick={signOut}>
+              <Avatar className="cursor-pointer w-10 h-10 rounded-full border border-border/50" onClick={signOut}>
+                {profile.avatar_url ? (
+                  <AvatarImage src={profile.avatar_url} alt="Profile" />
+                ) : null}
                 <AvatarFallback className="bg-primary/20 text-primary">
                   {(profile.display_name || user?.email)?.[0]?.toUpperCase()}
                 </AvatarFallback>
