@@ -113,10 +113,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
               <Zap className="h-4 w-4 text-xp" />
               <span>You'll earn {xpReward} XP upon completion</span>
             </div>
-            <div className="space-x-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+            <div className="flex justify-end">
               <Button type="submit" className="glow-primary" disabled={!title.trim()}>
                 Create Quest
               </Button>
