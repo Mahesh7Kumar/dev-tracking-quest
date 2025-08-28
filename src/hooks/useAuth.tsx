@@ -6,7 +6,7 @@ interface UserProfile {
   id?: string;
   display_name?: string;
   avatar_url?: string;
-  darkMode?: boolean;
+  dark_mode?: boolean;
 }
 
 interface AuthContextType {
@@ -19,6 +19,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithProvider: (provider: 'google' | 'github') => Promise<{ error: any }>;
   updateProfile: (updates: UserProfile) => Promise<{ error: any }>;
+  updateDarkMode: (darkMode: boolean) => Promise<{ error: any }>;
   uploadAvatar: (file: File) => Promise<{ error: any }>;
 }
 
@@ -45,19 +46,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        // Get dark mode from user metadata since it's not in profiles table
-        const darkMode = userData.user_metadata?.darkMode ?? false;
-        
         const newProfile = {
           id: data.id,
           display_name: data.display_name,
           avatar_url: data.avatar_url,
-          darkMode,
+          dark_mode: data.dark_mode ?? false,
         };
         setProfile(newProfile);
         
         // Apply dark mode to document
-        if (darkMode) {
+        if (newProfile.dark_mode) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
@@ -146,31 +144,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user_id: user.id,
           display_name: updates.display_name,
           avatar_url: updates.avatar_url,
+          dark_mode: updates.dark_mode,
         }, {
           onConflict: 'user_id'
         });
 
       if (dbError) return { error: dbError };
 
-      // Update metadata for dark mode
-      if (updates.darkMode !== undefined) {
-        const { error: authError } = await supabase.auth.updateUser({
-          data: { darkMode: updates.darkMode }
-        });
-        if (authError) return { error: authError };
-      }
-
       // Update local state immediately
       const newProfile = { ...profile, ...updates };
       setProfile(newProfile);
       
       // Apply dark mode to document
-      if (updates.darkMode !== undefined) {
-        if (updates.darkMode) {
+      if (updates.dark_mode !== undefined) {
+        if (updates.dark_mode) {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
         }
+      }
+      
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const updateDarkMode = async (darkMode: boolean) => {
+    if (!user) return { error: new Error('User not authenticated') };
+    
+    try {
+      // Update database
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          dark_mode: darkMode,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (dbError) return { error: dbError };
+
+      // Update local state
+      const newProfile = { ...profile, dark_mode: darkMode };
+      setProfile(newProfile);
+      
+      // Apply dark mode to document
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
       }
       
       return { error: null };
@@ -225,6 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signInWithProvider,
     updateProfile,
+    updateDarkMode,
     uploadAvatar,
   };
 

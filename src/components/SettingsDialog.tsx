@@ -16,7 +16,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { user, profile, signOut, updateProfile, uploadAvatar } = useAuth();
+  const { user, profile, signOut, updateProfile, updateDarkMode, uploadAvatar } = useAuth();
   const { toast } = useToast();
   const { setTheme } = useTheme();
   const [displayName, setDisplayName] = useState(profile.display_name || user?.email?.split('@')[0] || '');
@@ -54,7 +54,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       setTheme(checked ? 'dark' : 'light');
       
       // Update the profile in the database
-      const { error } = await updateProfile({ darkMode: checked });
+      const { error } = await updateDarkMode(checked);
       
       if (error) throw error;
 
@@ -266,7 +266,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
               <Switch
                 id="theme-toggle"
-                checked={profile.darkMode ?? false}
+                checked={profile.dark_mode ?? false}
                 onCheckedChange={handleDarkModeToggle}
               />
             </div>

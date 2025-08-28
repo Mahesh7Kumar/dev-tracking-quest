@@ -51,9 +51,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-gradient-to-br dark:from-background dark:via-background/95 dark:to-primary/5">
       {/* Top Navigation */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border/50 bg-card/50 dark:bg-card/30 backdrop-blur-sm sticky top-0 z-50 dark:border-border/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -94,51 +94,51 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-card/50 border-border/50 hover:bg-card/70 transition-all">
+          <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-card/50 dark:to-xp/10 border-border/50 dark:border-xp/20 hover:bg-card/70 dark:hover:bg-gradient-to-br dark:hover:from-card/60 dark:hover:to-xp/20 transition-all glow-xp dark:shadow-lg dark:shadow-xp/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total XP</CardTitle>
-              <Zap className="h-4 w-4 text-xp" />
+              <CardTitle className="text-sm font-medium dark:text-foreground">Total XP</CardTitle>
+              <Zap className="h-4 w-4 text-xp dark:text-xp drop-shadow-sm" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-xp">{stats?.xp || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-xp dark:text-xp dark:drop-shadow-sm">{stats?.xp || 0}</div>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground/80">
                 {xpToNextLevel} XP to level {(stats?.level || 1) + 1}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 border-border/50 hover:bg-card/70 transition-all">
+          <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-card/50 dark:to-primary/10 border-border/50 dark:border-primary/20 hover:bg-card/70 dark:hover:bg-gradient-to-br dark:hover:from-card/60 dark:hover:to-primary/20 transition-all glow-primary dark:shadow-lg dark:shadow-primary/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Level</CardTitle>
-              <Trophy className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium dark:text-foreground">Current Level</CardTitle>
+              <Trophy className="h-4 w-4 text-primary dark:text-primary drop-shadow-sm" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats?.level || 1}</div>
-              <Progress value={xpProgress} className="mt-2 h-2" />
+              <div className="text-2xl font-bold text-primary dark:text-primary dark:drop-shadow-sm">{stats?.level || 1}</div>
+              <Progress value={xpProgress} className="mt-2 h-2 dark:bg-secondary/30" />
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 border-border/50 hover:bg-card/70 transition-all">
+          <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-card/50 dark:to-success/10 border-border/50 dark:border-success/20 hover:bg-card/70 dark:hover:bg-gradient-to-br dark:hover:from-card/60 dark:hover:to-success/20 transition-all glow-success dark:shadow-lg dark:shadow-success/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Daily Streak</CardTitle>
-              <Flame className="h-4 w-4 text-success" />
+              <CardTitle className="text-sm font-medium dark:text-foreground">Daily Streak</CardTitle>
+              <Flame className="h-4 w-4 text-success dark:text-success drop-shadow-sm" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{stats?.streak || 0}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-success dark:text-success dark:drop-shadow-sm">{stats?.streak || 0}</div>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground/80">
                 {stats?.streak === 0 ? 'Complete a quest today!' : 'Keep it up!'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 border-border/50 hover:bg-card/70 transition-all">
+          <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-card/50 dark:to-accent/10 border-border/50 dark:border-accent/20 hover:bg-card/70 dark:hover:bg-gradient-to-br dark:hover:from-card/60 dark:hover:to-accent/20 transition-all glow-accent dark:shadow-lg dark:shadow-accent/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Quests</CardTitle>
-              <Target className="h-4 w-4 text-accent" />
+              <CardTitle className="text-sm font-medium dark:text-foreground">Today's Quests</CardTitle>
+              <Target className="h-4 w-4 text-accent dark:text-accent drop-shadow-sm" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-accent">{todayTasks.length}</div>
-              <p className="text-xs text-muted-foreground">Completed today</p>
+              <div className="text-2xl font-bold text-accent dark:text-accent dark:drop-shadow-sm">{todayTasks.length}</div>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground/80">Completed today</p>
             </CardContent>
           </Card>
         </div>
@@ -146,21 +146,21 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Current Quests */}
           <div className="lg:col-span-2">
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 dark:bg-card/30 dark:backdrop-blur-sm border-border/50 dark:border-border/20 dark:shadow-xl dark:shadow-primary/10">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Target className="h-5 w-5 text-primary" />
+                    <CardTitle className="flex items-center space-x-2 dark:text-foreground">
+                      <Target className="h-5 w-5 text-primary dark:text-primary drop-shadow-sm" />
                       <span>Current Quests</span>
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="dark:text-muted-foreground/80">
                       Complete quests to earn XP and level up
                     </CardDescription>
                   </div>
                   <Button 
                     onClick={() => setShowCreateTask(true)}
-                    className="glow-primary"
+                    className="glow-primary dark:bg-primary dark:hover:bg-primary/90 dark:shadow-lg dark:shadow-primary/30"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     New Quest
@@ -177,7 +177,7 @@ export default function Dashboard() {
                   pendingTasks.map((task) => {
                     const CategoryIcon = categoryIcons[task.category];
                     return (
-                      <div key={task.id} className="flex items-center space-x-4 p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-all">
+                      <div key={task.id} className="flex items-center space-x-4 p-4 rounded-lg bg-secondary/30 dark:bg-secondary/20 dark:border dark:border-border/20 hover:bg-secondary/50 dark:hover:bg-secondary/30 dark:hover:border-border/30 transition-all dark:shadow-md">
                         <Checkbox
                           checked={false}
                           onCheckedChange={() => completeTask(task.id)}
@@ -209,10 +209,10 @@ export default function Dashboard() {
 
           {/* Recent Activity & Streak */}
           <div className="space-y-6">
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 dark:bg-card/30 dark:backdrop-blur-sm border-border/50 dark:border-border/20 dark:shadow-xl dark:shadow-success/10">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-5 w-5 text-success" />
+                <CardTitle className="flex items-center space-x-2 dark:text-foreground">
+                  <CheckCircle2 className="h-5 w-5 text-success dark:text-success drop-shadow-sm" />
                   <span>Recent Activity</span>
                 </CardTitle>
               </CardHeader>
@@ -239,27 +239,29 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 dark:bg-card/30 dark:backdrop-blur-sm border-border/50 dark:border-border/20 dark:shadow-xl dark:shadow-success/10">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Flame className="h-5 w-5 text-success" />
+                <CardTitle className="flex items-center space-x-2 dark:text-foreground">
+                  <Flame className="h-5 w-5 text-success dark:text-success drop-shadow-sm" />
                   <span>Streak Tracker</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-success mb-2">
+                  <div className="text-3xl font-bold text-success dark:text-success dark:drop-shadow-sm mb-2">
                     {stats?.streak || 0}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground/80 mb-4">
                     {stats?.streak === 0 ? 'Start your streak today!' : 'Days in a row'}
                   </p>
                   <div className="flex justify-center space-x-1">
                     {[...Array(7)].map((_, i) => (
                       <div
                         key={i}
-                        className={`w-6 h-6 rounded-full ${
-                          i < (stats?.streak || 0) ? 'bg-success' : 'bg-secondary'
+                        className={`w-6 h-6 rounded-full transition-all ${
+                          i < (stats?.streak || 0) 
+                            ? 'bg-success dark:bg-success dark:shadow-md dark:shadow-success/50' 
+                            : 'bg-secondary dark:bg-secondary/30 dark:border dark:border-border/20'
                         }`}
                       />
                     ))}
