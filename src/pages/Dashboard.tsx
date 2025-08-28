@@ -24,6 +24,7 @@ import {
 import { useState, useEffect } from 'react';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
@@ -31,6 +32,9 @@ export default function Dashboard() {
   const { tasks, pendingTasks, completedTasks, todayTasks, completeTask } = useTasks();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 18 ? 'Good Afternoon' : 'Good Evening';
@@ -49,6 +53,40 @@ export default function Dashboard() {
     DSA: 'bg-primary',
     Personal: 'bg-success',
   };
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user?.id)
+        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const displayTasks = searchTerm.trim() ? searchResults : pendingTasks;
 
   return (
     <div className="min-h-screen bg-background dark:bg-gradient-to-br dark:from-background dark:via-background/95 dark:to-primary/5">
@@ -69,10 +107,16 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search 
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
+                  onClick={handleSearch}
+                />
                 <input
                   placeholder="Search quests..."
-                  className="pl-10 pr-4 py-2 bg-secondary/50 border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  className="pl-10 pr-4 py-2 bg-secondary/50 dark:bg-secondary/30 border border-border/50 dark:border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30 text-foreground dark:text-foreground"
                 />
               </div>
               <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
@@ -149,37 +193,48 @@ export default function Dashboard() {
             <Card className="bg-card/50 dark:bg-card/30 dark:backdrop-blur-sm border-border/50 dark:border-border/20 dark:shadow-xl dark:shadow-primary/10">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <CardTitle className="flex items-center space-x-2 dark:text-foreground">
                       <Target className="h-5 w-5 text-primary dark:text-primary drop-shadow-sm" />
-                      <span>Current Quests</span>
+                      <span>{searchTerm.trim() ? `Search Results${isSearching ? ' (Searching...)' : ''}` : 'Current Quests'}</span>
                     </CardTitle>
                     <CardDescription className="dark:text-muted-foreground/80">
-                      Complete quests to earn XP and level up
+                      {searchTerm.trim() ? `Showing results for "${searchTerm}"` : 'Complete quests to earn XP and level up'}
                     </CardDescription>
                   </div>
-                  <Button 
-                    onClick={() => setShowCreateTask(true)}
-                    className="glow-primary dark:bg-primary dark:hover:bg-primary/90 dark:shadow-lg dark:shadow-primary/30"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Quest
-                  </Button>
+                  <div className="flex-shrink-0 ml-4">
+                    {/* Desktop: Full button with text */}
+                    <Button 
+                      onClick={() => setShowCreateTask(true)}
+                      className="hidden sm:inline-flex glow-primary dark:bg-primary dark:hover:bg-primary/90 dark:shadow-lg dark:shadow-primary/30"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Quest
+                    </Button>
+                    {/* Mobile: Circular icon-only button */}
+                    <Button 
+                      onClick={() => setShowCreateTask(true)}
+                      size="icon"
+                      className="sm:hidden glow-primary dark:bg-primary dark:hover:bg-primary/90 dark:shadow-lg dark:shadow-primary/30 rounded-full"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {pendingTasks.length === 0 ? (
+                {displayTasks.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No active quests. Create one to start your journey!</p>
+                    <p>{searchTerm.trim() ? 'No quests found matching your search.' : 'No active quests. Create one to start your journey!'}</p>
                   </div>
                 ) : (
-                  pendingTasks.map((task) => {
+                  displayTasks.map((task) => {
                     const CategoryIcon = categoryIcons[task.category];
                     return (
                       <div key={task.id} className="flex items-center space-x-4 p-4 rounded-lg bg-secondary/30 dark:bg-secondary/20 dark:border dark:border-border/20 hover:bg-secondary/50 dark:hover:bg-secondary/30 dark:hover:border-border/30 transition-all dark:shadow-md">
                         <Checkbox
-                          checked={false}
+                          checked={task.status === 'completed'}
                           onCheckedChange={() => completeTask(task.id)}
                           className="border-primary data-[state=checked]:bg-primary"
                         />
