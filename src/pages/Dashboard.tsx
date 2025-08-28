@@ -63,12 +63,23 @@ export default function Dashboard() {
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
+      const searchWords = searchTerm.trim().split(' ').filter(word => word.length > 0);
+      
+      let query = supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user?.id)
-        .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
-        .order('created_at', { ascending: false });
+        .eq('user_id', user?.id);
+
+      // Create OR conditions for each word to search in both title and description
+      const orConditions = searchWords.map(word => 
+        `title.ilike.%${word}%,description.ilike.%${word}%`
+      ).join(',');
+
+      if (orConditions) {
+        query = query.or(orConditions);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setSearchResults(data || []);
@@ -77,12 +88,6 @@ export default function Dashboard() {
       setSearchResults([]);
     } finally {
       setIsSearching(false);
-    }
-  };
-
-  const handleSearchKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
     }
   };
 
@@ -115,7 +120,6 @@ export default function Dashboard() {
                   placeholder="Search quests..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={handleSearchKeyPress}
                   className="pl-10 pr-4 py-2 bg-secondary/50 dark:bg-secondary/30 border border-border/50 dark:border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30 text-foreground dark:text-foreground"
                 />
               </div>
