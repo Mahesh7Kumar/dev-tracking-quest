@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Github, Mail, Zap } from 'lucide-react';
+import { Github, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Auth() {
@@ -52,8 +52,8 @@ export default function Auth() {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
-    const { error } = await signInWithProvider(provider);
+  const handleGitHubLogin = async () => {
+    const { error } = await signInWithProvider('github');
     if (error) {
       toast({
         title: "Authentication Error",
@@ -125,24 +125,14 @@ export default function Auth() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin('google')}
-              className="bg-secondary/50 border-border/50 hover:glow-accent"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin('github')}
-              className="bg-secondary/50 border-border/50 hover:glow-accent"
-            >
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={handleGitHubLogin}
+            className="w-full bg-secondary/50 border-border/50 hover:glow-accent"
+          >
+            <Github className="mr-2 h-4 w-4" />
+            Sign in with GitHub
+          </Button>
 
           <div className="text-center">
             <Button

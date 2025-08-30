@@ -3,6 +3,7 @@ import { useUserStats } from '@/hooks/useUserStats';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,7 +20,9 @@ import {
   Clock,
   Code,
   Briefcase,
-  User
+  User,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
@@ -150,14 +153,36 @@ export default function Dashboard() {
               <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
                 <Settings className="h-5 w-5" />
               </Button>
-              <Avatar className="cursor-pointer w-10 h-10 rounded-full border border-border/50" onClick={signOut}>
-                {profile.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} alt="Profile" />
-                ) : null}
-                <AvatarFallback className="bg-primary/20 text-primary">
-                  {(profile.display_name || user?.email)?.[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 p-2 h-auto">
+                    <Avatar className="w-8 h-8 rounded-full border border-border/50">
+                      {user?.user_metadata?.avatar_url ? (
+                        <AvatarImage src={user.user_metadata.avatar_url} alt="Profile" />
+                      ) : null}
+                      <AvatarFallback className="bg-primary/20 text-primary text-sm">
+                        {(user?.user_metadata?.name || user?.email)?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:block text-sm font-medium">
+                      {user?.user_metadata?.name || user?.email?.split('@')[0]}
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setShowSettings(true)}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
