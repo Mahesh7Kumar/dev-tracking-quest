@@ -120,7 +120,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
+    // Always clear local state regardless of server response
+    setSession(null);
+    setUser(null);
+    setProfile({});
+    document.documentElement.classList.remove('dark');
   };
 
   const signInWithProvider = async (provider: 'google' | 'github') => {
