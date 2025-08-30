@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -55,7 +56,10 @@ export default function Dashboard() {
   };
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+    const queryText = searchTerm.trim();
+    setSearchQuery(queryText);
+    
+    if (!queryText) {
       setSearchResults([]);
       setIsSearching(false);
       return;
@@ -63,7 +67,7 @@ export default function Dashboard() {
 
     setIsSearching(true);
     try {
-      const searchWords = searchTerm.trim().split(' ').filter(word => word.length > 0);
+      const searchWords = queryText.split(' ').filter(word => word.length > 0);
       
       let query = supabase
         .from('tasks')
@@ -91,7 +95,13 @@ export default function Dashboard() {
     }
   };
 
-  const displayTasks = searchTerm.trim() ? searchResults : pendingTasks;
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const displayTasks = searchQuery.trim() ? searchResults : pendingTasks;
 
   return (
     <div className="min-h-screen bg-background dark:bg-gradient-to-br dark:from-background dark:via-background/95 dark:to-primary/5">
@@ -120,6 +130,7 @@ export default function Dashboard() {
                   placeholder="Search quests..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
                   className="pl-10 pr-4 py-2 bg-secondary/50 dark:bg-secondary/30 border border-border/50 dark:border-border/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30 text-foreground dark:text-foreground"
                 />
               </div>
@@ -200,10 +211,10 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <CardTitle className="flex items-center space-x-2 dark:text-foreground">
                       <Target className="h-5 w-5 text-primary dark:text-primary drop-shadow-sm" />
-                      <span>{searchTerm.trim() ? `Search Results${isSearching ? ' (Searching...)' : ''}` : 'Current Quests'}</span>
+                      <span>{searchQuery.trim() ? `Search Results${isSearching ? ' (Searching...)' : ''}` : 'Current Quests'}</span>
                     </CardTitle>
                     <CardDescription className="dark:text-muted-foreground/80">
-                      {searchTerm.trim() ? `Showing results for "${searchTerm}"` : 'Complete quests to earn XP and level up'}
+                      {searchQuery.trim() ? `Showing results for "${searchQuery}"` : 'Complete quests to earn XP and level up'}
                     </CardDescription>
                   </div>
                   <div className="flex-shrink-0 ml-4">
@@ -230,7 +241,7 @@ export default function Dashboard() {
                 {displayTasks.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>{searchTerm.trim() ? 'No quests found matching your search.' : 'No active quests. Create one to start your journey!'}</p>
+                    <p>{searchQuery.trim() ? 'No quests found matching your search.' : 'No active quests. Create one to start your journey!'}</p>
                   </div>
                 ) : (
                   displayTasks.map((task) => {
